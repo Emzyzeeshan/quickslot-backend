@@ -1,23 +1,36 @@
-const prisma = require('../config/prisma');
+const prisma =
+    require('../config/prisma');
 
-exports.getBookings = async (req, res) => {
+exports.getBookings =
+    async (req, res) => {
 
-    const { id } = req.params;
+        try {
 
-    const bookings =
-        await prisma.booking.findMany({
-            where: {
-                userId: id
-            },
-            include: {
-                slot: {
+            const { id } =
+                req.params;
+
+            const bookings =
+                await prisma.booking.findMany({
+                    where: {
+                        userId: id
+                    },
                     include: {
-                        venue: true
+                        slot: {
+                            include: {
+                                venue: true
+                            }
+                        }
                     }
-                }
-            }
-        });
+                });
 
-    res.json(bookings);
+            return res.json(bookings);
 
-};
+        } catch (error) {
+
+            return res.status(500).json({
+                message:
+                    'Failed to fetch bookings'
+            });
+
+        }
+    };
