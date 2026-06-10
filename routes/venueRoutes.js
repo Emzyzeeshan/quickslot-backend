@@ -5,6 +5,7 @@ const venueController =
 
 router.get('/', venueController.getVenues);
 
-router.get('/:id/slots', venueController.getSlots);
+router.get('/:id/slots',
+    venueController.getSlots);
 
 module.exports = router;
