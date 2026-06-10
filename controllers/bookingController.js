@@ -51,19 +51,20 @@ exports.createBooking =
 
         } catch (error) {
 
+            console.log('BOOKING ERROR');
+            console.log(error);
+
             if (error.code === 'P2002') {
 
                 return res.status(409).json({
-                    message:
-                        'Slot already booked'
+                    message: 'Slot already booked'
                 });
 
             }
 
             return res.status(500).json({
-                message: 'Server error'
+                message: error.message
             });
-
         }
     };
 
