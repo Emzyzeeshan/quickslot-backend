@@ -1,63 +1,97 @@
 const prisma = require('../config/prisma');
 
-exports.createBooking = async (req, res) => {
+exports.createBooking =
+    async (req, res) => {
 
-    try {
+        try {
 
-        const userId =
-            req.headers['x-user-id'];
+            const userId =
+                req.headers['x-user-id'];
 
-        const { slotId } = req.body;
+            const { slotId } =
+                req.body;
 
-        if (!userId || !slotId) {
-            return res.status(400).json({
-                message: 'Missing data'
+            if (!userId) {
+                return res.status(401).json({
+                    message: 'User header missing'
+                });
+            }
+
+            if (!slotId) {
+                return res.status(400).json({
+                    message: 'Slot ID required'
+                });
+            }
+
+            const slot =
+                await prisma.slot.findUnique({
+                    where: {
+                        id: slotId
+                    }
+                });
+
+            if (!slot) {
+                return res.status(404).json({
+                    message: 'Slot not found'
+                });
+            }
+
+            const booking =
+                await prisma.booking.create({
+                    data: {
+                        userId,
+                        slotId
+                    }
+                });
+
+            return res.status(201).json({
+                message: 'Booking successful',
+                booking
             });
-        }
 
-        const booking =
-            await prisma.booking.create({
-                data: {
-                    userId,
-                    slotId
+        } catch (error) {
+
+            if (error.code === 'P2002') {
+
+                return res.status(409).json({
+                    message:
+                        'Slot already booked'
+                });
+
+            }
+
+            return res.status(500).json({
+                message: 'Server error'
+            });
+
+        }
+    };
+
+exports.cancelBooking =
+    async (req, res) => {
+
+        try {
+
+            const { id } =
+                req.params;
+
+            await prisma.booking.delete({
+                where: {
+                    id
                 }
             });
 
-        return res.status(201).json({
-            message: 'Booking Success',
-            booking
-        });
+            return res.json({
+                message:
+                    'Booking cancelled'
+            });
 
-    } catch (error) {
+        } catch (error) {
 
-        if (error.code === 'P2002') {
-
-            return res.status(409).json({
-                message: 'Slot already booked'
+            return res.status(404).json({
+                message:
+                    'Booking not found'
             });
 
         }
-
-        return res.status(500).json({
-            message: 'Server Error'
-        });
-
-    }
-
-};
-
-exports.cancelBooking = async (req, res) => {
-
-    const { id } = req.params;
-
-    await prisma.booking.delete({
-        where: {
-            id
-        }
-    });
-
-    res.json({
-        message: 'Booking Cancelled'
-    });
-
-};
+    };
